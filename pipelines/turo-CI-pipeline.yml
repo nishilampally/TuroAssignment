@@ -63,8 +63,7 @@ stages:
           BRANCH_NAME=$(Build.SourceBranchName)
           echo $BRANCH_NAME
           git fetch origin main
-          git checkout -b feature-build-$(Build.BuildId)
-          git pull --rebase
+          git checkout -b feature-build-$(Build.BuildId) origin/main
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           git add .
           git commit -m "Update Docker image tag to $(Build.BuildId)"
