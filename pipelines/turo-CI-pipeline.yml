@@ -1,0 +1,85 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - turoassignment/Docker*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: Docker-Credentials
+  - name: DOCKER_TAG
+    value: '$(Build.BuildId)' 
+  - name: DOCKER_FILEPATH
+    value: '$(Build.SourcesDirectory)/Docker/Dockerfile'
+
+stages:
+- stage: Build
+  displayName: Build and Push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: DockerInstaller@0
+      displayName: Docker Installer
+      inputs:
+        dockerVersion: 20.10.24
+        releaseType: stable
+  
+    - task: CmdLine@2
+      displayName: Execute Docker Build and Push
+      inputs:
+        workingDirectory: '$(Build.SourcesDirectory)/Docker'
+        script: |
+          set -euo pipefail
+          sh docker_build.sh
+      env:
+        DOCKER_TAG: $(DOCKER_TAG)
+        DOCKER_USERNAME: $(DOCKER_USERNAME)
+        DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+        DOCKER_IMAGEREPO: $DOCKER_IMAGEREPO
+        DOCKER_FILE_PATH: $(DOCKER_FILEPATH)
+
+- stage: Deploy
+  displayName: Create PR for Turo repo
+  jobs:
+  - job: UpdateTerraform
+    displayName: Update Image Tag in Terraform
+    steps:
+    - checkout: self
+      persistCredentials: true
+      clean: true
+     
+    - task: CmdLine@2
+      displayName: Create and publish branch
+      inputs:
+        workingDirectory: '$(Build.SourcesDirectory)/terraform'
+        script: |
+          git config --global user.email "nishilampally25@gmail.com"
+          git config --global user.name "Nishil Ampally"
+          BRANCH_NAME=$(Build.SourceBranchName)
+          git checkout feature-build-$(Build.BuildId)
+          git pull --rebase
+          sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
+          git add .
+          git commit -m "Update Docker image tag to $(Build.BuildId)"
+          git push -u origin $BRANCH_NAME
+        
+    - task: CmdLine@2
+      displayName: 'Create Pull Request'
+      inputs:
+        workingDirectory: '$(Build.SourcesDirectory)/terraform'
+        script: |
+          curl -X POST \
+          -H "Authorization: token $(GITHUB_TOKEN)" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "title": "Updated Docker tag",
+            "head": $(Build.SourceBranchName),
+            "base": "main",
+            "body": "Updated Docker tag to $(Build.BuildId)"
+          }' "https://api.github.com/repos/nishilampally/turoassignment/pulls"
+        

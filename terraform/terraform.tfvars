@@ -1,0 +1,10 @@
+deployment_name      = "simple-web-app"
+service_name         = "web-app-service"
+label_name           = "nginx"
+replicas             = 2
+image_name           = "nishilampally/my-webapp"
+container_name       = "web-app"
+http_container_port  = 80
+https_container_port = 443
+tag                  = "4"
+namespace            = "candidate-e"

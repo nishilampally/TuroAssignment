@@ -1,0 +1,93 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - turoassignment/terraform*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Install
+  jobs:
+    - job: Install
+      displayName: Install Terraform
+      steps:
+      - script: |
+          sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update
+          sudo apt-get install terraform
+
+- stage: Plan
+  jobs:
+    - job: Plan
+      variables:
+        ARM_TENANT_ID: $(TERRAFORM-TENANT-ID)
+        ARM_ACCESS_KEY: $(TFSTATE-ARM-ACCESS-KEY)
+
+      steps:
+      - checkout: self
+
+      - task: DownloadSecureFile@1
+        displayName: Fetch Kube Config File
+        name: kubeconfig
+        inputs:
+          secureFile: 'config'
+     
+      - task: CmdLine@2
+        displayName: Terraform Plan
+        inputs:
+          workingDirectory: '$(Build.SourcesDirectory)/terraform'
+          script: |
+            set -euo pipefail
+            terraform init
+            terraform plan -no-color -out $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-plan.out 2>&1 | tee $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-plan.log
+        env:
+          KUBE_CONFIG_PATH: $(kubeconfig.secureFilePath)
+
+      - task: PublishPipelineArtifact@0
+        displayName: 'Publish plan artifacts'
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: '$(Build.BuildId)-tfplan'
+
+- stage: Apply
+  condition: succeeded('Plan')
+  jobs:
+  - deployment: Apply
+    variables:
+      ARM_TENANT_ID: $(TERRAFORM-TENANT-ID)
+      ARM_ACCESS_KEY: $(TFSTATE-ARM-ACCESS-KEY)
+    displayName: Terraform Apply
+    environment: 'DEV'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: DownloadSecureFile@1
+            displayName: Fetch Kube Config File
+            name: kubeconfig
+            inputs:
+              secureFile: 'config'
+        
+          - task: CmdLine@2
+            displayName: Terraform Apply
+            inputs:
+              workingDirectory: '$(Build.SourcesDirectory)/terraform'
+              script: |
+                set -euo pipefail
+                terraform init
+                terraform apply -auto-approve
+            env:
+              KUBE_CONFIG_PATH: $(kubeconfig.secureFilePath)
+
+        
+
+      
