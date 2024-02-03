@@ -61,7 +61,9 @@ stages:
           git config --global user.email "nishilampally25@gmail.com"
           git config --global user.name "Nishil Ampally"
           BRANCH_NAME=$(Build.SourceBranchName)
-          git checkout feature-build-$(Build.BuildId)
+          echo $BRANCH_NAME
+          git fetch origin main
+          git checkout -b feature-build-$(Build.BuildId)
           git pull --rebase
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           git add .
