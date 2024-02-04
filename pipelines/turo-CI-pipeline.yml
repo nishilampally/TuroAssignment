@@ -6,19 +6,20 @@ trigger:
     include:
     - Docker/*
 
-pool:
-  vmImage: 'ubuntu-latest'
-
 variables:
   - group: Docker-Credentials
   - name: DOCKER_TAG
     value: '$(Build.BuildId)' 
   - name: DOCKER_FILEPATH
     value: '$(Build.SourcesDirectory)/Docker/Dockerfile'
+  - name: vmImageName
+    value: 'ubuntu-latest'
 
 stages:
 - stage: Build
   displayName: Build and Push stage
+  pool:
+    vmImage: $(vmImageName)
   jobs:
   - job: Build
     displayName: Build
@@ -45,6 +46,8 @@ stages:
 
 - stage: Deploy
   displayName: Create PR for Turo repo
+  pool:
+    vmImage: $(vmImageName)
   jobs:
   - job: UpdateTerraform
     displayName: Update Image Tag in Terraform
@@ -67,7 +70,7 @@ stages:
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           terraform fmt .
           git add .
-          git commit -m "Update Docker image tag to $(Build.BuildId) ***NO_CI***"
+          git commit -m "Updated Docker image tag [skip ci]"
           git push -u origin $BRANCH_NAME
         
     - task: CmdLine@2
@@ -78,7 +81,7 @@ stages:
           -H "Authorization: token $(GITHUB_TOKEN)" \
           -H "Content-Type: application/json" \
           -d '{
-            "title": "Updated Docker tag [skip ci]",
+            "title": "Updated Docker tag",
             "head": "feature-build-$(Build.BuildId)",
             "base": "main",
 
