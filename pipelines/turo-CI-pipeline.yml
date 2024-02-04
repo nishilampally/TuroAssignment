@@ -2,9 +2,9 @@ trigger:
   branches:
     include:
     - main
-  paths:
-    include:
-    - Docker/*
+  # paths:
+  #   include:
+  #   - Docker/*
 
 pool:
   vmImage: 'ubuntu-latest'

@@ -2,9 +2,9 @@ trigger:
   branches:
     include:
     - main
-  paths:
-    include:
-    - terraform/*
+  # paths:
+  #   include:
+  #   - terraform/*
 
 pool:
   vmImage: 'ubuntu-latest'
