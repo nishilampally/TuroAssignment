@@ -4,7 +4,7 @@ trigger:
     - main
   paths:
     include:
-    - turoassignment/Docker*
+    - turoassignment/Docker
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -67,7 +67,7 @@ stages:
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           terraform fmt .
           git add .
-          git commit -m "Update Docker image tag to $(Build.BuildId)"
+          git commit -m "Update Docker image tag to $(Build.BuildId) [skip ci]"
           git push -u origin $BRANCH_NAME
         
     - task: CmdLine@2
