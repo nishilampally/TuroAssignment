@@ -2,9 +2,9 @@ trigger:
   branches:
     include:
     - main
-  # paths:
-  #   include:
-  #   - Docker/*
+  paths:
+    include:
+    - Docker/*
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -67,13 +67,12 @@ stages:
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           terraform fmt .
           git add .
-          git commit -m "Update Docker image tag to $(Build.BuildId) [skip ci]"
+          git commit -m "Update Docker image tag to $(Build.BuildId) [ci skip]"
           git push -u origin $BRANCH_NAME
         
     - task: CmdLine@2
       displayName: 'Create Pull Request'
       inputs:
-        workingDirectory: '$(Build.SourcesDirectory)/terraform'
         script: |
           curl -X POST \
           -H "Authorization: token $(GITHUB_TOKEN)" \
@@ -82,6 +81,7 @@ stages:
             "title": "Updated Docker tag",
             "head": "feature-build-$(Build.BuildId)",
             "base": "main",
-            "body": "Updated Docker tag to $(Build.BuildId)"
+
+            "body": "Updated Docker tag to $(Build.BuildId) [ci skip]"
           }' "https://api.github.com/repos/nishilampally/turoassignment/pulls"
         
