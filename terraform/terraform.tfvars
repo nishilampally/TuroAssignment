@@ -6,5 +6,5 @@ image_name           = "nishilampally/my-webapp"
 container_name       = "web-app"
 http_container_port  = 80
 https_container_port = 443
-tag                  = "4"
+tag = "173"
 namespace            = "candidate-e"
