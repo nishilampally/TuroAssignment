@@ -6,5 +6,5 @@ image_name           = "nishilampally/nginx-web-app"
 container_name       = "web-app"
 http_container_port  = 80
 https_container_port = 443
-tag                  = "1"
+tag                  = "183"
 namespace            = "candidate-e"
