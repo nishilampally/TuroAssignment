@@ -67,7 +67,7 @@ stages:
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           terraform fmt .
           git add .
-          git commit -m "Update Docker image tag to $(Build.BuildId) [ci skip]"
+          git commit -m "Update Docker image tag to $(Build.BuildId) [skip ci]"
           git push -u origin $BRANCH_NAME
         
     - task: CmdLine@2
@@ -78,10 +78,10 @@ stages:
           -H "Authorization: token $(GITHUB_TOKEN)" \
           -H "Content-Type: application/json" \
           -d '{
-            "title": "Updated Docker tag",
+            "title": "Updated Docker tag [skip ci]",
             "head": "feature-build-$(Build.BuildId)",
             "base": "main",
 
-            "body": "Updated Docker tag to $(Build.BuildId) [ci skip]"
+            "body": "Updated Docker tag to $(Build.BuildId)"
           }' "https://api.github.com/repos/nishilampally/turoassignment/pulls"
         
