@@ -65,6 +65,7 @@ stages:
           git fetch origin main
           git checkout -b $BRANCH_NAME origin/main
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
+          terraform fmt .
           git add .
           git commit -m "Update Docker image tag to $(Build.BuildId)"
           git push -u origin $BRANCH_NAME
