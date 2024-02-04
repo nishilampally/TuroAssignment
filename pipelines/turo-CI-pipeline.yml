@@ -60,10 +60,10 @@ stages:
         script: |
           git config --global user.email "nishilampally25@gmail.com"
           git config --global user.name "Nishil Ampally"
-          BRANCH_NAME=$(Build.SourceBranchName)
+          BRANCH_NAME="feature-build-$(Build.BuildId)"
           echo $BRANCH_NAME
           git fetch origin main
-          git checkout -b feature-build-$(Build.BuildId) origin/main
+          git checkout -b $BRANCH_NAME origin/main
           sed -i "s/^tag\s*=.*/tag = \"$(Build.BuildId)\"/" terraform.tfvars
           git add .
           git commit -m "Update Docker image tag to $(Build.BuildId)"
@@ -79,7 +79,7 @@ stages:
           -H "Content-Type: application/json" \
           -d '{
             "title": "Updated Docker tag",
-            "head": $(Build.SourceBranchName),
+            "head": "feature-build-$(Build.BuildId)",
             "base": "main",
             "body": "Updated Docker tag to $(Build.BuildId)"
           }' "https://api.github.com/repos/nishilampally/turoassignment/pulls"
