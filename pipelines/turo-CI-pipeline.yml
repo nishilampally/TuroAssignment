@@ -4,7 +4,7 @@ trigger:
     - main
   paths:
     include:
-    - turoassignment/Docker
+    - Docker/*
 
 pool:
   vmImage: 'ubuntu-latest'
