@@ -63,7 +63,7 @@ stages:
     variables:
       ARM_TENANT_ID: $(TERRAFORM-TENANT-ID)
       ARM_ACCESS_KEY: $(TFSTATE-ARM-ACCESS-KEY)
-    displayName: Terraform Apply
+    displayName: Apply
     environment: 'DEV'
     strategy:
       runOnce:
@@ -87,7 +87,3 @@ stages:
                 terraform apply -auto-approve
             env:
               KUBE_CONFIG_PATH: $(kubeconfig.secureFilePath)
-
-        
-
-      
