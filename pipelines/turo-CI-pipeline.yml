@@ -72,6 +72,20 @@ stages:
           git add .
           git commit -m "Updated Docker image tag [skip ci]"
           git push -u origin $BRANCH_NAME
+
+   # Below  task creates PR in Azure DevOps
+
+    # - task: CmdLine@2
+    #   displayName: Create Pull Request
+    #   inputs:
+    #     script: |
+    #       echo ${AZURE_DEVOPS_CLI_PAT} | az devops login
+    #       az devops configure --defaults organization=nikhithaampally project=Turo Assignment --use-git-aliases true
+    #       az repos pr create -d "Updated Docker tag $(Build.BuildId)" -t main -s feature-build-$(Build.BuildId) --description "This is an automated PR." --delete-source-branch -r TURO
+    #   env:
+    #     AZURE_DEVOPS_CLI_PAT: $(System.AccessToken)
+
+     # Below code creates PR in GITHUB   
         
     - task: CmdLine@2
       displayName: 'Create Pull Request'
@@ -81,7 +95,7 @@ stages:
           -H "Authorization: token $(GITHUB_TOKEN)" \
           -H "Content-Type: application/json" \
           -d '{
-            "title": "Updated Docker tag",
+            "title": "Updated Docker tag $(Build.BuildId)",
             "head": "feature-build-$(Build.BuildId)",
             "base": "main",
 
